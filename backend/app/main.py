@@ -1,6 +1,9 @@
 from fastapi import FastAPI
-from .storage.database import init_db
+from sqlmodel import Session
+from .storage.database import init_db, engine
 from .models.project import Project
+from .services.scanner import scan_repository
+from .services.git_analyzer import analyze_git_history
 
 app = FastAPI(title="Project Autopsy", version="0.1.0")
 
@@ -13,3 +16,25 @@ def on_startup():
 @app.get("/")
 def health_check():
     return {"status": "ok", "app": "Project Autopsy backend running"}
+
+
+@app.post("/api/projects/scan")
+def scan_project(path: str):
+    scan_result = scan_repository(path)
+
+    with Session(engine) as session:
+        project = Project(name=path.split("\\")[-1].split("/")[-1], path=path)
+        session.add(project)
+        session.commit()
+        session.refresh(project)
+
+    return {
+        "project_id": project.id,
+        "name": project.name,
+        **scan_result,
+    }
+
+
+@app.get("/api/projects/git-history")
+def git_history(path: str):
+    return analyze_git_history(path)
