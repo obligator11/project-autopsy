@@ -4,6 +4,7 @@ from .storage.database import init_db, engine
 from .models.project import Project
 from .services.scanner import scan_repository
 from .services.git_analyzer import analyze_git_history
+from sqlmodel import Session, select
 
 app = FastAPI(title="Project Autopsy", version="0.1.0")
 
@@ -23,10 +24,17 @@ def scan_project(path: str):
     scan_result = scan_repository(path)
 
     with Session(engine) as session:
-        project = Project(name=path.split("\\")[-1].split("/")[-1], path=path)
-        session.add(project)
-        session.commit()
-        session.refresh(project)
+        existing = session.exec(
+            select(Project).where(Project.path == path)
+        ).first()
+
+        if existing:
+            project = existing
+        else:
+            project = Project(name=path.split("\\")[-1].split("/")[-1], path=path)
+            session.add(project)
+            session.commit()
+            session.refresh(project)
 
     return {
         "project_id": project.id,
