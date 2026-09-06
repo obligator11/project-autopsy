@@ -5,6 +5,7 @@ from .models.project import Project
 from .services.scanner import scan_repository
 from .services.git_analyzer import analyze_git_history
 from sqlmodel import Session, select
+from .scoring.hotspot import calculate_hotspots
 
 app = FastAPI(title="Project Autopsy", version="0.1.0")
 
@@ -46,3 +47,14 @@ def scan_project(path: str):
 @app.get("/api/projects/git-history")
 def git_history(path: str):
     return analyze_git_history(path)
+
+
+@app.get("/api/projects/hotspots")
+def hotspots(path: str):
+    git_data = analyze_git_history(path)
+    if not git_data.get("has_git_history"):
+        return {"error": "No git history found"}
+
+    return {
+        "hotspots": calculate_hotspots(path, git_data["most_changed_files"])
+    }
