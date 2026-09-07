@@ -7,7 +7,25 @@ from .services.git_analyzer import analyze_git_history
 from sqlmodel import Session, select
 from .scoring.hotspot import calculate_hotspots
 
+from .services.settings_service import (
+    save_github_token, save_gemini_key, is_setup_complete
+)
+
+from .services.settings_service import (
+    save_github_token, save_gemini_key, is_setup_complete,
+    validate_github_token, validate_gemini_key,
+)
+
+from fastapi.middleware.cors import CORSMiddleware
+
+
 app = FastAPI(title="Project Autopsy", version="0.1.0")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.on_event("startup")
@@ -58,3 +76,30 @@ def hotspots(path: str):
     return {
         "hotspots": calculate_hotspots(path, git_data["most_changed_files"])
     }
+
+
+@app.get("/api/setup/status")
+def setup_status():
+    return {"setup_complete": is_setup_complete()}
+
+
+@app.post("/api/setup/github-token")
+def set_github_token(token: str):
+    save_github_token(token)
+    return {"status": "saved"}
+
+
+@app.post("/api/setup/gemini-key")
+def set_gemini_key(key: str):
+    save_gemini_key(key)
+    return {"status": "saved"}
+
+
+@app.post("/api/setup/test-github-token")
+def test_github_token(token: str):
+    return {"valid": validate_github_token(token)}
+
+
+@app.post("/api/setup/test-gemini-key")
+def test_gemini_key(key: str):
+    return {"valid": validate_gemini_key(key)}
