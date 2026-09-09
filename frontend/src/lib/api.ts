@@ -20,3 +20,17 @@ export async function fetchHotspots(path: string): Promise<HotspotsResponse> {
     }
     return response.json();
 }
+
+
+export interface ProjectHistoryEntry {
+    id: number;
+    name: string;
+    path: string;
+    created_at: string;
+}
+
+export async function fetchProjectHistory(zone: "autopsy" | "repodoctor"): Promise<ProjectHistoryEntry[]> {
+    const response = await fetch(`${API_BASE}/api/projects?zone=${zone}`);
+    if (!response.ok) throw new Error("Failed to fetch project history");
+    return response.json();
+}

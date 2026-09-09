@@ -1,5 +1,4 @@
-from fastapi import FastAPI
-from sqlmodel import Session
+from fastapi import FastAPI 
 from .storage.database import init_db, engine
 from .models.project import Project
 from .services.scanner import scan_repository
@@ -39,18 +38,22 @@ def health_check():
 
 
 @app.post("/api/projects/scan")
-def scan_project(path: str):
+def scan_project(path: str, zone: str = "autopsy"):
     scan_result = scan_repository(path)
 
     with Session(engine) as session:
         existing = session.exec(
-            select(Project).where(Project.path == path)
+            select(Project).where(Project.path == path, Project.zone == zone)
         ).first()
 
         if existing:
             project = existing
         else:
-            project = Project(name=path.split("\\")[-1].split("/")[-1], path=path)
+            project = Project(
+                name=path.split("\\")[-1].split("/")[-1],
+                path=path,
+                zone=zone,
+            )
             session.add(project)
             session.commit()
             session.refresh(project)
@@ -103,3 +106,17 @@ def test_github_token(token: str):
 @app.post("/api/setup/test-gemini-key")
 def test_gemini_key(key: str):
     return {"valid": validate_gemini_key(key)}
+
+
+@app.get("/api/projects")
+def list_projects(zone: str = "autopsy"):
+    with Session(engine) as session:
+        projects = session.exec(
+            select(Project)
+            .where(Project.zone == zone)
+            .order_by(Project.created_at.desc())
+        ).all()
+        return [
+            {"id": p.id, "name": p.name, "path": p.path, "created_at": p.created_at.isoformat()}
+            for p in projects
+        ]
