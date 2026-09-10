@@ -34,3 +34,19 @@ export async function fetchProjectHistory(zone: "autopsy" | "repodoctor"): Promi
     if (!response.ok) throw new Error("Failed to fetch project history");
     return response.json();
 }
+
+export interface ScanResult {
+    project_id: number;
+    name: string;
+    total_source_files: number;
+    languages: Record<string, number>;
+}
+
+export async function scanProject(path: string, zone: "autopsy" | "repodoctor"): Promise<ScanResult> {
+    const response = await fetch(
+        `${API_BASE}/api/projects/scan?path=${encodeURIComponent(path)}&zone=${zone}`,
+        { method: "POST" }
+    );
+    if (!response.ok) throw new Error("Scan failed");
+    return response.json();
+}

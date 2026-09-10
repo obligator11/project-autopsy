@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Search, Stethoscope, Circle } from "lucide-react";
 
 interface ZoneChooserProps {
-    onSelect: (zone: "autopsy" | "repodoctor") => void;
+    onSelect: (zone: "autopsy" | "repodoctor", e: React.MouseEvent) => void;
 }
 
 // Real ECG beat shape: flat baseline, small P-wave, sharp QRS spike, T-wave, flat.
@@ -47,7 +47,7 @@ export function ZoneChooser({ onSelect }: ZoneChooserProps) {
         <div className="fixed inset-0 bg-[#050505] flex">
             {/* ---------- Left: Project Autopsy ---------- */}
             <button
-                onClick={() => onSelect("autopsy")}
+                onClick={(e) => onSelect("autopsy", e)}
                 onMouseEnter={() => setHovered("autopsy")}
                 onMouseLeave={() => setHovered(null)}
                 className="relative flex-1 h-full flex flex-col justify-center items-start px-20 text-left overflow-hidden cursor-pointer"
@@ -139,7 +139,7 @@ export function ZoneChooser({ onSelect }: ZoneChooserProps) {
 
             {/* ---------- Right: RepoDoctor ---------- */}
             <button
-                onClick={() => onSelect("repodoctor")}
+                onClick={(e) => onSelect("repodoctor", e)}
                 onMouseEnter={() => setHovered("repodoctor")}
                 onMouseLeave={() => setHovered(null)}
                 className="relative flex-1 h-full flex flex-col justify-center items-end px-20 text-right overflow-hidden cursor-pointer"
