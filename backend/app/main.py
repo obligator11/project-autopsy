@@ -17,6 +17,7 @@ from .services.settings_service import (
 
 from fastapi.middleware.cors import CORSMiddleware
 
+from .services.project_dna import build_project_dna
 
 app = FastAPI(title="Project Autopsy", version="0.1.0")
 app.add_middleware(
@@ -120,3 +121,8 @@ def list_projects(zone: str = "autopsy"):
             {"id": p.id, "name": p.name, "path": p.path, "created_at": p.created_at.isoformat()}
             for p in projects
         ]
+
+
+@app.get("/api/projects/dna")
+def project_dna(path: str):
+    return build_project_dna(path)
