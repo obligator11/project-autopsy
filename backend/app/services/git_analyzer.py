@@ -10,6 +10,8 @@ def analyze_git_history(path: str) -> dict:
 
     commits = list(repo.iter_commits())
     total_commits = len(commits)
+    first_commit_date = commits[-1].committed_datetime.isoformat() if commits else None
+    last_commit_date = commits[0].committed_datetime.isoformat() if commits else None
 
     author_counts = Counter()
     file_change_counts = Counter()
@@ -28,4 +30,6 @@ def analyze_git_history(path: str) -> dict:
         "most_changed_files": [
             {"file": f, "changes": c} for f, c in most_changed_files
         ],
+        "first_commit_date": first_commit_date,
+        "last_commit_date": last_commit_date,
     }
