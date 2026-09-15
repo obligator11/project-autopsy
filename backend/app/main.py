@@ -19,6 +19,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .services.project_dna import build_project_dna
 
+
+from .services.git_analyzer import analyze_git_history, build_commit_timeline
+
 app = FastAPI(title="Project Autopsy", version="0.1.0")
 app.add_middleware(
     CORSMiddleware,
@@ -126,3 +129,8 @@ def list_projects(zone: str = "autopsy"):
 @app.get("/api/projects/dna")
 def project_dna(path: str):
     return build_project_dna(path)
+
+
+@app.get("/api/projects/timeline")
+def project_timeline(path: str):
+    return build_commit_timeline(path)

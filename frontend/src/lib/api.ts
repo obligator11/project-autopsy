@@ -50,3 +50,22 @@ export async function scanProject(path: string, zone: "autopsy" | "repodoctor"):
     if (!response.ok) throw new Error("Scan failed");
     return response.json();
 }
+
+export interface ProjectDNA {
+    total_source_files: number;
+    languages: Record<string, number>;
+    total_commits: number;
+    contributors: Record<string, number>;
+    contributor_count: number;
+    has_git_history: boolean;
+    first_commit_date: string | null;
+    last_commit_date: string | null;
+    repo_age_days: number | null;
+    generated_at: string;
+}
+
+export async function fetchProjectDNA(path: string): Promise<ProjectDNA> {
+    const response = await fetch(`${API_BASE}/api/projects/dna?path=${encodeURIComponent(path)}`);
+    if (!response.ok) throw new Error("Failed to fetch project DNA");
+    return response.json();
+}

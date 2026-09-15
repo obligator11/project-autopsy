@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { type MouseEvent, useEffect, useState } from "react";
 import { ArrowLeftRight, Clock, Loader2 } from "lucide-react";
 import {
     fetchProjectHistory,
@@ -10,7 +10,7 @@ import {
 
 interface ZoneShellProps {
     zone: "autopsy" | "repodoctor";
-    onSwitch: (e: React.MouseEvent) => void;
+    onSwitch: (e: MouseEvent) => void;
 }
 
 export function ZoneShell({ zone, onSwitch }: ZoneShellProps) {
