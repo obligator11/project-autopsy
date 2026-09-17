@@ -22,6 +22,9 @@ from .services.project_dna import build_project_dna
 
 from .services.git_analyzer import analyze_git_history, build_commit_timeline
 
+from .analyzers.ast.dependency_graph import build_dependency_graph
+
+
 app = FastAPI(title="Project Autopsy", version="0.1.0")
 app.add_middleware(
     CORSMiddleware,
@@ -134,3 +137,8 @@ def project_dna(path: str):
 @app.get("/api/projects/timeline")
 def project_timeline(path: str):
     return build_commit_timeline(path)
+
+
+@app.get("/api/projects/architecture")
+def architecture_graph(path: str):
+    return build_dependency_graph(path)
