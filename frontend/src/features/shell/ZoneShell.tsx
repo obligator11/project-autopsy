@@ -1,11 +1,16 @@
 import { type MouseEvent, useEffect, useState } from "react";
 import { ArrowLeftRight, Clock, Loader2 } from "lucide-react";
+import { ProjectTimeline } from "../timeline/ProjectTimeline";
+import { ProjectDNACard } from "../dna/ProjectDNACard";
 import {
     fetchProjectHistory,
     scanProject,
     fetchHotspots,
+    fetchTimeline,
+    fetchProjectDNA,
     type ProjectHistoryEntry,
     type Hotspot,
+    type TimelineMonth,
 } from "../../lib/api";
 
 interface ZoneShellProps {
@@ -26,6 +31,8 @@ export function ZoneShell({ zone, onSwitch }: ZoneShellProps) {
     const [error, setError] = useState("");
     const [activeProject, setActiveProject] = useState<string | null>(null);
     const [hotspots, setHotspots] = useState<Hotspot[]>([]);
+    const [dna, setDna] = useState<any>(null);
+    const [timeline, setTimeline] = useState<TimelineMonth[]>([]);
 
     function loadHistory() {
         setLoadingHistory(true);
@@ -42,10 +49,16 @@ export function ZoneShell({ zone, onSwitch }: ZoneShellProps) {
         setError("");
         try {
             await scanProject(targetPath, zone);
-            const data = await fetchHotspots(targetPath);
-            setHotspots(data.hotspots ?? []);
+            const [hotspotData, dnaData, timelineData] = await Promise.all([
+                fetchHotspots(targetPath),
+                fetchProjectDNA(targetPath),
+                fetchTimeline(targetPath),
+            ]);
+            setHotspots(hotspotData.hotspots ?? []);
+            setDna(dnaData);
+            setTimeline(timelineData.months ?? []);
             setActiveProject(targetPath);
-            loadHistory(); // refresh sidebar so the new/updated entry shows up
+            loadHistory();
         } catch {
             setError("Scan failed — check the path and that the backend is running.");
         } finally {
@@ -117,7 +130,6 @@ export function ZoneShell({ zone, onSwitch }: ZoneShellProps) {
                         {scanning ? "Scanning..." : "Scan"}
                     </button>
 
-
                     <style>{`
                         @keyframes fadeSlideUp {
                             from { opacity: 0; transform: translateY(14px); }
@@ -130,7 +142,22 @@ export function ZoneShell({ zone, onSwitch }: ZoneShellProps) {
 
                 {activeProject && (
                     <div>
-                        <p className="text-xs text-neutral-500 mb-3 font-mono">{activeProject}</p>
+                        <p className="text-xs text-neutral-500 mb-6 font-mono">{activeProject}</p>
+
+                        {dna && (
+                            <div className="mb-10">
+                                <ProjectDNACard dna={dna} accent={accent} />
+                            </div>
+                        )}
+
+                        {timeline.length > 0 && (
+                            <div className="mb-10">
+                                <ProjectTimeline months={timeline} accent={accent} />
+                            </div>
+                        )}
+
+                        <p className="text-xs tracking-[0.2em] uppercase text-neutral-500 mb-3">Change Hotspots</p>
+
                         <div className="space-y-2">
                             {hotspots.map((h) => (
                                 <div

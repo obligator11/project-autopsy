@@ -69,3 +69,20 @@ export async function fetchProjectDNA(path: string): Promise<ProjectDNA> {
     if (!response.ok) throw new Error("Failed to fetch project DNA");
     return response.json();
 }
+
+
+export interface TimelineMonth {
+    month: string;
+    commit_count: number;
+}
+
+export interface TimelineResponse {
+    has_git_history: boolean;
+    months: TimelineMonth[];
+}
+
+export async function fetchTimeline(path: string): Promise<TimelineResponse> {
+    const response = await fetch(`${API_BASE}/api/projects/timeline?path=${encodeURIComponent(path)}`);
+    if (!response.ok) throw new Error("Failed to fetch timeline");
+    return response.json();
+}
