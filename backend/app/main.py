@@ -24,6 +24,8 @@ from .services.git_analyzer import analyze_git_history, build_commit_timeline
 
 from .analyzers.ast.dependency_graph import build_dependency_graph
 
+from .scoring.priority import build_priority_list
+
 
 app = FastAPI(title="Project Autopsy", version="0.1.0")
 app.add_middleware(
@@ -142,3 +144,13 @@ def project_timeline(path: str):
 @app.get("/api/projects/architecture")
 def architecture_graph(path: str):
     return build_dependency_graph(path)
+
+
+@app.get("/api/projects/priorities")
+def project_priorities(path: str):
+    git_data = analyze_git_history(path)
+    if not git_data.get("has_git_history"):
+        return {"error": "No git history found"}
+
+    hotspot_data = calculate_hotspots(path, git_data["most_changed_files"])
+    return {"priorities": build_priority_list(hotspot_data)}
