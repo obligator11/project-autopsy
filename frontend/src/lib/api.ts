@@ -86,3 +86,24 @@ export async function fetchTimeline(path: string): Promise<TimelineResponse> {
     if (!response.ok) throw new Error("Failed to fetch timeline");
     return response.json();
 }
+
+
+export interface GraphNode {
+    id: string;
+}
+
+export interface GraphEdge {
+    source: string;
+    target: string;
+}
+
+export interface DependencyGraph {
+    nodes: GraphNode[];
+    edges: GraphEdge[];
+}
+
+export async function fetchArchitectureGraph(path: string): Promise<DependencyGraph> {
+    const response = await fetch(`${API_BASE}/api/projects/architecture?path=${encodeURIComponent(path)}`);
+    if (!response.ok) throw new Error("Failed to fetch architecture graph");
+    return response.json();
+}

@@ -2,15 +2,18 @@ import { type MouseEvent, useEffect, useState } from "react";
 import { ArrowLeftRight, Clock, Loader2 } from "lucide-react";
 import { ProjectTimeline } from "../timeline/ProjectTimeline";
 import { ProjectDNACard } from "../dna/ProjectDNACard";
+import { ArchitectureGraph } from "../architecture/ArchitectureGraph";
 import {
     fetchProjectHistory,
     scanProject,
     fetchHotspots,
     fetchTimeline,
     fetchProjectDNA,
+    fetchArchitectureGraph,
     type ProjectHistoryEntry,
     type Hotspot,
     type TimelineMonth,
+    type DependencyGraph,
 } from "../../lib/api";
 
 interface ZoneShellProps {
@@ -33,6 +36,7 @@ export function ZoneShell({ zone, onSwitch }: ZoneShellProps) {
     const [hotspots, setHotspots] = useState<Hotspot[]>([]);
     const [dna, setDna] = useState<any>(null);
     const [timeline, setTimeline] = useState<TimelineMonth[]>([]);
+    const [graph, setGraph] = useState<DependencyGraph | null>(null);
 
     function loadHistory() {
         setLoadingHistory(true);
@@ -49,14 +53,16 @@ export function ZoneShell({ zone, onSwitch }: ZoneShellProps) {
         setError("");
         try {
             await scanProject(targetPath, zone);
-            const [hotspotData, dnaData, timelineData] = await Promise.all([
+            const [hotspotData, dnaData, timelineData, graphData] = await Promise.all([
                 fetchHotspots(targetPath),
                 fetchProjectDNA(targetPath),
                 fetchTimeline(targetPath),
+                fetchArchitectureGraph(targetPath),
             ]);
             setHotspots(hotspotData.hotspots ?? []);
             setDna(dnaData);
             setTimeline(timelineData.months ?? []);
+            setGraph(graphData);
             setActiveProject(targetPath);
             loadHistory();
         } catch {
@@ -153,6 +159,12 @@ export function ZoneShell({ zone, onSwitch }: ZoneShellProps) {
                         {timeline.length > 0 && (
                             <div className="mb-10">
                                 <ProjectTimeline months={timeline} accent={accent} />
+                            </div>
+                        )}
+
+                        {graph && graph.nodes.length > 0 && (
+                            <div className="mb-10">
+                                <ArchitectureGraph graph={graph} accent={accent} />
                             </div>
                         )}
 
