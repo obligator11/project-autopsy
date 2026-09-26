@@ -3,6 +3,7 @@ import { ArrowLeftRight, Clock, Loader2 } from "lucide-react";
 import { ProjectTimeline } from "../timeline/ProjectTimeline";
 import { ProjectDNACard } from "../dna/ProjectDNACard";
 import { ArchitectureGraph } from "../architecture/ArchitectureGraph";
+import { PriorityList } from "../priorities/PriorityList";
 import {
     fetchProjectHistory,
     scanProject,
@@ -10,10 +11,12 @@ import {
     fetchTimeline,
     fetchProjectDNA,
     fetchArchitectureGraph,
+    fetchPriorities,
     type ProjectHistoryEntry,
     type Hotspot,
     type TimelineMonth,
     type DependencyGraph,
+    type Priority,
 } from "../../lib/api";
 
 interface ZoneShellProps {
@@ -37,6 +40,7 @@ export function ZoneShell({ zone, onSwitch }: ZoneShellProps) {
     const [dna, setDna] = useState<any>(null);
     const [timeline, setTimeline] = useState<TimelineMonth[]>([]);
     const [graph, setGraph] = useState<DependencyGraph | null>(null);
+    const [priorities, setPriorities] = useState<Priority[]>([]);
 
     function loadHistory() {
         setLoadingHistory(true);
@@ -53,16 +57,18 @@ export function ZoneShell({ zone, onSwitch }: ZoneShellProps) {
         setError("");
         try {
             await scanProject(targetPath, zone);
-            const [hotspotData, dnaData, timelineData, graphData] = await Promise.all([
+            const [hotspotData, dnaData, timelineData, graphData, priorityData] = await Promise.all([
                 fetchHotspots(targetPath),
                 fetchProjectDNA(targetPath),
                 fetchTimeline(targetPath),
                 fetchArchitectureGraph(targetPath),
+                fetchPriorities(targetPath),
             ]);
             setHotspots(hotspotData.hotspots ?? []);
             setDna(dnaData);
             setTimeline(timelineData.months ?? []);
             setGraph(graphData);
+            setPriorities(priorityData.priorities ?? []);
             setActiveProject(targetPath);
             loadHistory();
         } catch {
@@ -150,47 +156,53 @@ export function ZoneShell({ zone, onSwitch }: ZoneShellProps) {
                     <div>
                         <p className="text-xs text-neutral-500 mb-6 font-mono">{activeProject}</p>
 
-                        {dna && (
-                            <div className="mb-10">
-                                <ProjectDNACard dna={dna} accent={accent} />
-                            </div>
-                        )}
-
-                        {timeline.length > 0 && (
-                            <div className="mb-10">
-                                <ProjectTimeline months={timeline} accent={accent} />
-                            </div>
-                        )}
-
-                        {graph && graph.nodes.length > 0 && (
-                            <div className="mb-10">
-                                <ArchitectureGraph graph={graph} accent={accent} />
-                            </div>
-                        )}
-
-                        <p className="text-xs tracking-[0.2em] uppercase text-neutral-500 mb-3">Change Hotspots</p>
-
-                        <div className="space-y-2">
-                            {hotspots.map((h) => (
-                                <div
-                                    key={h.file}
-                                    className="bg-neutral-900/60 border border-neutral-800 rounded-lg p-4 flex justify-between items-center"
-                                >
-                                    <div>
-                                        <p className="text-sm font-mono">{h.file}</p>
-                                        <p className="text-xs text-neutral-500 mt-1">
-                                            {h.changes} changes · {h.size_bytes} bytes
-                                        </p>
+                        {isAutopsy ? (
+                            <>
+                                {dna && (
+                                    <div className="mb-10">
+                                        <ProjectDNACard dna={dna} accent={accent} />
                                     </div>
-                                    <span className="text-xl font-bold" style={{ color: accent }}>
-                                        {h.hotspot_score}
-                                    </span>
+                                )}
+
+                                {timeline.length > 0 && (
+                                    <div className="mb-10">
+                                        <ProjectTimeline months={timeline} accent={accent} />
+                                    </div>
+                                )}
+
+                                {graph && graph.nodes.length > 0 && (
+                                    <div className="mb-10">
+                                        <ArchitectureGraph graph={graph} accent={accent} />
+                                    </div>
+                                )}
+
+                                <p className="text-xs tracking-[0.2em] uppercase text-neutral-500 mb-3">Change Hotspots</p>
+
+                                <div className="space-y-2">
+                                    {hotspots.map((h) => (
+                                        <div
+                                            key={h.file}
+                                            className="bg-neutral-900/60 border border-neutral-800 rounded-lg p-4 flex justify-between items-center"
+                                        >
+                                            <div>
+                                                <p className="text-sm font-mono">{h.file}</p>
+                                                <p className="text-xs text-neutral-500 mt-1">
+                                                    {h.changes} changes · {h.size_bytes} bytes
+                                                </p>
+                                            </div>
+                                            <span className="text-xl font-bold" style={{ color: accent }}>
+                                                {h.hotspot_score}
+                                            </span>
+                                        </div>
+                                    ))}
+                                    {hotspots.length === 0 && (
+                                        <p className="text-neutral-600 text-sm">No hotspots found for this project.</p>
+                                    )}
                                 </div>
-                            ))}
-                            {hotspots.length === 0 && (
-                                <p className="text-neutral-600 text-sm">No hotspots found for this project.</p>
-                            )}
-                        </div>
+                            </>
+                        ) : (
+                            <PriorityList priorities={priorities} />
+                        )}
                     </div>
                 )}
             </div>

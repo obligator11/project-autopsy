@@ -107,3 +107,21 @@ export async function fetchArchitectureGraph(path: string): Promise<DependencyGr
     if (!response.ok) throw new Error("Failed to fetch architecture graph");
     return response.json();
 }
+
+
+export interface Priority {
+    file: string;
+    severity: "HIGH" | "MEDIUM" | "LOW";
+    hotspot_score: number;
+    reasons: string[];
+}
+
+export interface PrioritiesResponse {
+    priorities: Priority[];
+}
+
+export async function fetchPriorities(path: string): Promise<PrioritiesResponse> {
+    const response = await fetch(`${API_BASE}/api/projects/priorities?path=${encodeURIComponent(path)}`);
+    if (!response.ok) throw new Error("Failed to fetch priorities");
+    return response.json();
+}
