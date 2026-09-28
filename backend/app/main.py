@@ -26,6 +26,11 @@ from .analyzers.ast.dependency_graph import build_dependency_graph
 
 from .scoring.priority import build_priority_list
 
+from .ai.investigator import investigate_file
+
+from .services.github_service import list_user_repos
+from .services.local_picker import pick_folder
+
 
 app = FastAPI(title="Project Autopsy", version="0.1.0")
 app.add_middleware(
@@ -154,3 +159,22 @@ def project_priorities(path: str):
 
     hotspot_data = calculate_hotspots(path, git_data["most_changed_files"])
     return {"priorities": build_priority_list(hotspot_data)}
+
+
+
+@app.get("/api/ai/investigate")
+def ai_investigate(path: str, file: str):
+    return investigate_file(path, file)
+
+
+@app.get("/api/github/repos")
+def github_repos():
+    try:
+        return {"repos": list_user_repos()}
+    except Exception as exc:
+        return {"error": f"Could not load GitHub repos: {exc}", "repos": []}
+
+
+@app.post("/api/local/pick-folder")
+def local_pick_folder():
+    return {"path": pick_folder()}
