@@ -31,6 +31,7 @@ from .ai.investigator import investigate_file
 from .services.github_service import list_user_repos
 from .services.local_picker import pick_folder
 
+from .services.repo_cache import get_cached_repo_path
 
 app = FastAPI(title="Project Autopsy", version="0.1.0")
 app.add_middleware(
@@ -178,3 +179,13 @@ def github_repos():
 @app.post("/api/local/pick-folder")
 def local_pick_folder():
     return {"path": pick_folder()}
+
+
+@app.post("/api/github/clone-and-scan")
+def github_clone_and_scan(clone_url: str, name: str, zone: str = "autopsy"):
+    try:
+        local_path = get_cached_repo_path(clone_url, name)
+    except Exception as exc:
+        return {"error": f"Clone failed: {exc}"}
+
+    return scan_project(local_path, zone)
